@@ -1,0 +1,62 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Thu Nov 15 10:25:19 2018
+
+@author: mariamhakobyan
+"""
+import torch
+import torch.nn.functional as F 
+from torch import nn
+
+class TwoLayerNet(nn.Module):
+    def __init__(self, input, hidden, output):
+            """
+            create two nn.Linear objects and assign them as attributes
+            :param input: dimension of the input
+            :param hidden: number of hidden neurons
+            :param output: dimension of the output
+            """
+            super().__init__()
+            self.linear1 = nn.Linear(input, hidden)
+            self.linear2 = nn.Linear(hidden, output)
+    def forward(self, x):
+        """
+   
+        In the forward method we define what is the output of the network
+        given an input x. In this example we use the ReLU as our activation function 
+        """
+        x = F.relu(self.linear1(x))
+        x = self.linear2(x)
+        return x
+    
+net = TwoLayerNet(input=784, hidden=100, output=10)
+x = torch.randn(784)
+result = net(x)
+print('output of the network at input x: ' + str(result))
+
+import torch, torchvision
+from torchvision import transforms
+train_dataset = torchvision.datasets.MNIST(
+        root='~/data',
+        train=True,
+        transform=transforms.ToTensor(),
+        download=True)
+train_loader = torch.utils.data.DataLoader(
+        dataset=train_dataset,
+        batch_size=100,
+        shuffle=True)
+for x, y in train_loader:
+    print('batch size: ' + str(x.shape[0])) 
+    print('input dimension: ' + str(x[0].shape))
+    
+for x, y in train_loader:
+    loss_fn = nn.CrossEntropyLoss()
+    x = x.view(x.shape[0], -1) 
+    net.zero_grad()
+    output = net(x)
+    loss = loss_fn(output, y)
+    loss.backward() # backpropagation
+    for p in net.parameters():
+        gradient = p.grad
+        # perform an update based on the gradient
